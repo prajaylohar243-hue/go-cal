@@ -14,6 +14,7 @@ import Track from "./pages/Track";
 import Exercise from "./pages/Exercise";
 import Report from "./pages/Report";
 import Coach from "./pages/Coach";
+import Settings from "./pages/Settings";
 
 function App() {
   return (
@@ -36,6 +37,7 @@ function App() {
         <Route path="/exercise" element={<Exercise />} />
         <Route path="/report" element={<Report />} />
         <Route path="/coach" element={<Coach />} />
+        <Route path="/Settings" element={<Settings />} />
       </Routes>
     </Router>
   );

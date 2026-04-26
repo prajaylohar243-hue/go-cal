@@ -16,16 +16,7 @@ function Track() {
   const [food, setFood] = useState("");
   const [suggestions, setSuggestions] = useState([]);
   const [manualQty, setManualQty] = useState(100);
-  const [isAdding, setIsAdding] = useState(false);
-
-  // 🔥 AI STATES
-  const [aiFood, setAiFood] = useState("");
-  const [aiMacros, setAiMacros] = useState({
-    protein: 0,
-    carbs: 0,
-    fats: 0
-  });
-  const [quantity, setQuantity] = useState(100);
+  const [editQty, setEditQty] = useState({});
 
   const [date, setDate] = useState(
     new Date().toISOString().split("T")[0]
@@ -46,75 +37,55 @@ function Track() {
     snack: []
   };
 
-  // 🔥 ADD FOOD (FIXED)
   const handleAddFood = () => {
-  if (!food || isAdding) return;
+    if (!food) return;
 
-  setIsAdding(true);
+    const key = food.toLowerCase().trim();
+    const macros = foodData[key];
 
-  const macros = foodData[food.toLowerCase()];
-  if (!macros) {
-    setIsAdding(false);
-    return alert("Food not found");
-  }
-
-  const baseName = food;
-  const qty = manualQty;
-  const scale = qty / 100;
-
-  setMeals((prev) => {
-    const updated = { ...prev };
-
-    if (!updated[date]) {
-      updated[date] = {
-        breakfast: [],
-        lunch: [],
-        dinner: [],
-        snack: []
-      };
+    if (!macros) {
+      return alert("Food not found");
     }
 
-    const existingIndex = updated[date][meal].findIndex((item) =>
-      item.name.startsWith(baseName)
-    );
+    const qty = manualQty || 100;
+    const scale = qty / 100;
 
-    if (existingIndex !== -1) {
-      const existing = updated[date][meal][existingIndex];
+    const newItem = {
+      name: `${food} (${qty}g)`,
+      quantity: qty,
+      calories: Math.round(macros.calories * scale),
+      protein: Math.round(macros.protein * scale),
+      carbs: Math.round(macros.carbs * scale),
+      fats: Math.round(macros.fats * scale)
+    };
 
-      const newQty = (existing.quantity || 100) + qty;
-      const newScale = newQty / 100;
+    setMeals((prev) => {
+      const updated = { ...prev };
 
-      updated[date][meal][existingIndex] = {
-        name: `${baseName} (${newQty}g)`,
-        quantity: newQty,
-        calories: Math.round(macros.calories * newScale),
-        protein: Math.round(macros.protein * newScale),
-        carbs: Math.round(macros.carbs * newScale),
-        fats: Math.round(macros.fats * newScale)
-      };
-    } else {
-      updated[date][meal].push({
-        name: `${baseName} (${qty}g)`,
-        quantity: qty,
-        calories: Math.round(macros.calories * scale),
-        protein: Math.round(macros.protein * scale),
-        carbs: Math.round(macros.carbs * scale),
-        fats: Math.round(macros.fats * scale)
-      });
-    }
+      if (!updated[date]) {
+        updated[date] = {
+          breakfast: [],
+          lunch: [],
+          dinner: [],
+          snack: []
+        };
+      }
 
-    return updated;
-  });
+      const lastItem = updated[date][meal].slice(-1)[0];
+      if (lastItem && lastItem.name === newItem.name) {
+        return prev;
+      }
 
-  setFood("");
-  setManualQty(100);
-  setSuggestions([]);
+      updated[date][meal] = [...updated[date][meal], newItem];
 
-  // 🔥 release lock
-  setTimeout(() => setIsAdding(false), 100);
-};
+      return updated;
+    });
 
-  // 🔥 DELETE FOOD
+    setFood("");
+    setManualQty(100);
+    setSuggestions([]);
+  };
+
   const handleDelete = (mealType, index) => {
     setMeals((prev) => {
       const updated = { ...prev };
@@ -123,41 +94,33 @@ function Track() {
     });
   };
 
-// 🔥 UPDATE QUANTITY (ADD HERE 👇)
-const handleUpdateQuantity = (mealType, index, newQty) => {
-  if (!newQty || newQty <= 0) return;
+  const handleUpdateQuantity = (mealType, index, newQty) => {
+    if (!newQty || newQty <= 0) return;
 
-  setMeals((prev) => {
-    const updated = { ...prev };
+    setMeals((prev) => {
+      const updated = { ...prev };
 
-    const item = updated[date][mealType][index];
+      const item = updated[date][mealType][index];
+      const baseName = item.name.split(" (")[0];
 
-    const baseName = item.name.split(" (")[0];
+      const baseMacros =
+        foodData[baseName.toLowerCase()] || item;
 
-    const scale = newQty / 100;
+      const scale = newQty / 100;
 
-    const baseMacros =
-      foodData[baseName.toLowerCase()] || {
-        protein: item.protein,
-        carbs: item.carbs,
-        fats: item.fats,
-        calories: item.calories
+      updated[date][mealType][index] = {
+        name: `${baseName} (${newQty}g)`,
+        quantity: newQty,
+        calories: Math.round(baseMacros.calories * scale),
+        protein: Math.round(baseMacros.protein * scale),
+        carbs: Math.round(baseMacros.carbs * scale),
+        fats: Math.round(baseMacros.fats * scale)
       };
 
-    updated[date][mealType][index] = {
-      name: `${baseName} (${newQty}g)`,
-      quantity: newQty,
-      calories: Math.round(baseMacros.calories * scale),
-      protein: Math.round(baseMacros.protein * scale),
-      carbs: Math.round(baseMacros.carbs * scale),
-      fats: Math.round(baseMacros.fats * scale)
-    };
+      return updated;
+    });
+  };
 
-    return updated;
-  });
-};
-
-  // 🔥 SUGGESTIONS
   const handleFoodChange = (value) => {
     setFood(value);
 
@@ -172,93 +135,6 @@ const handleUpdateQuantity = (mealType, index, newQty) => {
     }
   };
 
-  // 🔥 AI GUESS
-  const handleAIGuess = () => {
-    if (!food) return;
-
-    const data = foodData[food.toLowerCase()];
-    if (!data) return alert("Food not recognized");
-
-    setAiFood(food);
-    setAiMacros({
-      protein: data.protein,
-      carbs: data.carbs,
-      fats: data.fats
-    });
-    setQuantity(100);
-  };
-
-  // 🔥 CALCULATE CALORIES
-  const calculatedCalories =
-    aiMacros.protein * 4 +
-    aiMacros.carbs * 4 +
-    aiMacros.fats * 9;
-
-  const scaledCalories = Math.round(
-    (calculatedCalories * quantity) / 100
-  );
-
-  // 🔥 ADD AI FOOD (FIXED)
-  const handleAddAIFood = () => {
-  if (!aiFood) return;
-
-  const baseName = aiFood;
-  const scale = quantity / 100;
-
-  const newItem = {
-    name: `${baseName} (${quantity}g)`,
-    quantity,
-    calories: scaledCalories,
-    protein: Math.round(aiMacros.protein * scale),
-    carbs: Math.round(aiMacros.carbs * scale),
-    fats: Math.round(aiMacros.fats * scale)
-  };
-
-  setMeals((prev) => {
-    const updated = { ...prev };
-
-    if (!updated[date]) {
-      updated[date] = {
-        breakfast: [],
-        lunch: [],
-        dinner: [],
-        snack: []
-      };
-    }
-
-    const existingIndex = updated[date][meal].findIndex((item) =>
-      item.name.startsWith(baseName)
-    );
-
-    if (existingIndex !== -1) {
-      const existing = updated[date][meal][existingIndex];
-
-      const newQty = (existing.quantity || 100) + quantity;
-      const scale = newQty / 100;
-
-      updated[date][meal][existingIndex] = {
-        name: `${baseName} (${newQty}g)`,
-        quantity: newQty,
-        calories: Math.round(
-          (aiMacros.protein * 4 +
-            aiMacros.carbs * 4 +
-            aiMacros.fats * 9) * scale
-        ),
-        protein: Math.round(aiMacros.protein * scale),
-        carbs: Math.round(aiMacros.carbs * scale),
-        fats: Math.round(aiMacros.fats * scale)
-      };
-    } else {
-      updated[date][meal].push(newItem);
-    }
-
-    return updated;
-  });
-
-  setAiFood("");
-};
-
-  // 🔥 TOTALS
   const total = Object.values(currentMeals).flat().reduce(
     (acc, item) => {
       acc.calories += item.calories || 0;
@@ -300,208 +176,157 @@ const handleUpdateQuantity = (mealType, index, newQty) => {
 
   const COLORS = ["#00C49F", "#FFBB28", "#FF8042"];
 
-  const card = {
-    border: "1px solid #ddd",
-    borderRadius: "12px",
-    padding: "20px",
-    margin: "20px auto",
-    width: "350px",
-    background: "#fff"
-  };
-
   return (
-    <div>
+    <div className="min-h-screen bg-gradient-to-br from-gray-100 to-gray-200 dark:from-gray-900 dark:to-gray-800">
       <Navbar />
 
-      <div style={{ textAlign: "center", marginTop: "40px" }}>
-        <h1>Track Your Food 🍽️</h1>
+      <div className="max-w-5xl mx-auto p-6 text-center">
 
+        <h1 className="text-3xl font-bold mb-4 text-black dark:text-white">
+          Track Your Food 🍽️
+        </h1>
+
+        {/* DATE */}
         <input
           type="date"
           value={date}
           onChange={(e) => setDate(e.target.value)}
+          className="border px-3 py-2 rounded-lg mb-4 bg-white dark:bg-gray-800 text-black dark:text-white"
         />
 
-        <br /><br />
+        {/* INPUT */}
+        <div className="bg-white dark:bg-gray-900 text-black dark:text-white rounded-2xl shadow-md p-6 mb-6">
+          <div className="flex flex-col sm:flex-row gap-3 justify-center items-center">
 
-        <select value={meal} onChange={(e) => setMeal(e.target.value)}>
-          <option value="breakfast">Breakfast</option>
-          <option value="lunch">Lunch</option>
-          <option value="dinner">Dinner</option>
-          <option value="snack">Snack</option>
-        </select>
+            <select
+              value={meal}
+              onChange={(e) => setMeal(e.target.value)}
+              className="border px-3 py-2 rounded-lg bg-white dark:bg-gray-800 text-black dark:text-white"
+            >
+              <option value="breakfast">Breakfast</option>
+              <option value="lunch">Lunch</option>
+              <option value="dinner">Dinner</option>
+              <option value="snack">Snack</option>
+            </select>
 
-        <br /><br />
+            <div className="relative w-full sm:w-64">
+              <input
+                value={food}
+                placeholder="Enter food"
+                onChange={(e) => handleFoodChange(e.target.value)}
+                className="border px-3 py-2 rounded-lg w-full bg-white dark:bg-gray-800 text-black dark:text-white"
+              />
 
-        <input
-          value={food}
-          placeholder="Enter food"
-          onChange={(e) => handleFoodChange(e.target.value)}
-        />
-
-        {suggestions.map((item, i) => (
-          <p key={i} onClick={() => { setFood(item); setSuggestions([]); }}>
-            {item}
-          </p>
-        ))}
-
-        <button onClick={handleAddFood}>Add Food</button>
-
-        {/* 🔥 AI BUTTON */}
-        <br /><br />
-        <button onClick={handleAIGuess}>🤖 AI Guess Food</button>
-
-        {/* 🔥 AI PANEL */}
-        {aiFood && (
-          <div style={card}>
-            <h3>AI Suggestion</h3>
-
-            <p><b>{aiFood}</b></p>
-
-            <input
-              type="number"
-              value={aiMacros.protein}
-              onChange={(e) =>
-                setAiMacros({ ...aiMacros, protein: Number(e.target.value) })
-              }
-              placeholder="Protein"
-            />
+              {suggestions.length > 0 && (
+                <div className="absolute z-50 mt-1 w-full bg-white dark:bg-gray-800 border rounded-lg shadow-md max-h-40 overflow-y-auto">
+                  {suggestions.map((item, i) => (
+                    <div
+                      key={i}
+                      className="px-3 py-2 cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700"
+                      onClick={() => {
+                        setFood(item);
+                        setSuggestions([]);
+                      }}
+                    >
+                      {item}
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
 
             <input
               type="number"
-              value={aiMacros.carbs}
-              onChange={(e) =>
-                setAiMacros({ ...aiMacros, carbs: Number(e.target.value) })
-              }
-              placeholder="Carbs"
+              value={manualQty}
+              onChange={(e) => setManualQty(Number(e.target.value))}
+              className="border px-3 py-2 rounded-lg w-24 bg-white dark:bg-gray-800 text-black dark:text-white"
+              min="1"
             />
 
-            <input
-              type="number"
-              value={aiMacros.fats}
-              onChange={(e) =>
-                setAiMacros({ ...aiMacros, fats: Number(e.target.value) })
-              }
-              placeholder="Fats"
-            />
-
-            <br /><br />
-
-            <input
-              type="number"
-              value={quantity}
-              onChange={(e) => setQuantity(Number(e.target.value))}
-              placeholder="Quantity (g)"
-            />
-
-            <p><b>Calories:</b> {scaledCalories}</p>
-
-            <button onClick={handleAddAIFood}>
-              Add to Meal
+            <button
+              onClick={handleAddFood}
+              className="bg-black text-white dark:bg-white dark:text-black px-4 py-2 rounded-lg hover:bg-gray-800 transition"
+            >
+              Add Food
             </button>
           </div>
-        )}
-
-        {/* SUMMARY */}
-        <div style={card}>
-          <h3>Today's Summary</h3>
-          <p>Calories: {total.calories}</p>
-          <p>Remaining: {remaining}</p>
         </div>
 
-{/* 🔥 MEAL TIMELINE (NEW) */}
-<div style={{ marginTop: "30px" }}>
-  {["breakfast", "lunch", "dinner", "snack"].map((type) => (
-    <div
-      key={type}
-      style={{
-        border: "1px solid #ddd",
-        borderRadius: "12px",
-        padding: "15px",
-        margin: "10px auto",
-        width: "350px",
-        background: "#fff"
-      }}
-    >
-      <h4 style={{ textTransform: "uppercase" }}>{type}</h4>
-
-      {currentMeals[type].length === 0 ? (
-        <p style={{ color: "#888" }}>No items added</p>
-      ) : (
-        currentMeals[type].map((item, index) => (
-          <div
-            key={index}
-            style={{
-              display: "flex",
-              justifyContent: "space-between",
-              marginBottom: "5px"
-            }}
-          >
-            <div
-  key={index}
-  style={{
-    display: "flex",
-    justifyContent: "space-between",
-    alignItems: "center",
-    marginBottom: "8px"
-  }}
->
-  <div>
-    <div>{item.name}</div>
-    <small>
-      P: {item.protein}g | C: {item.carbs}g | F: {item.fats}g
-    </small>
-  </div>
-
-  <div>
-    <input
-      type="number"
-      value={item.quantity || 100}
-      onChange={(e) =>
-        handleUpdateQuantity(type, index, Number(e.target.value))
-      }
-      style={{ width: "60px" }}
-    />
-
-    <span> g</span>
-
-    <button
-      onClick={() => handleDelete(type, index)}
-      style={{
-        marginLeft: "10px",
-        border: "none",
-        background: "none",
-        cursor: "pointer"
-      }}
-    >
-      ❌
-    </button>
-  </div>
-</div>
-
-            <span>
-              {item.calories} kcal
-              <button
-                onClick={() => handleDelete(type, index)}
-                style={{
-                  marginLeft: "10px",
-                  border: "none",
-                  background: "none",
-                  cursor: "pointer"
-                }}
-              >
-                ❌
-              </button>
-            </span>
+        {/* SUMMARY */}
+        <div className="flex justify-around mt-3">
+          <div>
+            <p className="text-gray-500 dark:text-gray-400 text-sm">Calories</p>
+            <p className="text-lg font-semibold text-black dark:text-white">{total.calories}</p>
           </div>
-        ))
-      )}
-    </div>
-  ))}
-</div>
+
+          <div>
+            <p className="text-gray-500 dark:text-gray-400 text-sm">Remaining</p>
+            <p className="text-lg font-semibold text-black dark:text-white">{remaining}</p>
+          </div>
+        </div>
+
+        {/* MEALS */}
+        <div className="grid md:grid-cols-2 gap-4 mt-6">
+          {["breakfast", "lunch", "dinner", "snack"].map((type) => (
+            <div key={type} className="bg-white dark:bg-gray-900 text-black dark:text-white rounded-2xl shadow-md p-6 transition hover:shadow-lg hover:-translate-y-1">
+              <h4 className="font-semibold mb-6 uppercase">{type}</h4>
+
+              {currentMeals[type].length === 0 ? (
+                <p className="text-gray-400 italic text-sm">
+                  No food logged yet
+                </p>
+              ) : (
+                currentMeals[type].map((item, index) => (
+                  <div key={index} className="flex justify-between items-center mb-3 border-b pb-2">
+
+                    <div className="text-left">
+                      <div>{item.name}</div>
+                      <small className="text-gray-500 dark:text-gray-400">
+                        {item.calories} kcal • P: {item.protein}g | C: {item.carbs}g | F: {item.fats}g
+                      </small>
+                    </div>
+
+                    <div className="flex items-center gap-2">
+                      <input
+                        type="number"
+                        value={
+                          editQty[`${type}-${index}`] ?? item.quantity ?? 100
+                        }
+                        onChange={(e) => {
+                          setEditQty((prev) => ({
+                            ...prev,
+                            [`${type}-${index}`]: e.target.value
+                          }));
+                        }}
+                        onBlur={() => {
+                          const key = `${type}-${index}`;
+                          handleUpdateQuantity(type, index, Number(editQty[key]));
+                          setEditQty((prev) => {
+                            const copy = { ...prev };
+                            delete copy[key];
+                            return copy;
+                          });
+                        }}
+                        className="w-16 border rounded px-1 py-1 text-sm bg-white dark:bg-gray-800 text-black dark:text-white"
+                      />
+
+                      <button
+                        onClick={() => handleDelete(type, index)}
+                        className="text-red-500 hover:text-red-700"
+                      >
+                        ❌
+                      </button>
+                    </div>
+
+                  </div>
+                ))
+              )}
+            </div>
+          ))}
+        </div>
 
         {/* PIE */}
-        <div style={{ display: "flex", justifyContent: "center" }}>
+        <div className="flex justify-center mt-8">
           <PieChart width={300} height={300}>
             <Pie data={chartData} dataKey="value">
               {chartData.map((_, i) => (
@@ -512,6 +337,7 @@ const handleUpdateQuantity = (mealType, index, newQty) => {
             <Legend />
           </PieChart>
         </div>
+
       </div>
     </div>
   );

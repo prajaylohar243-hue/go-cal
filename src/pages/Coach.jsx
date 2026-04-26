@@ -1,27 +1,25 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import Navbar from "../components/Navbar";
 
 function Coach() {
   const [userData, setUserData] = useState({});
   const [meals, setMeals] = useState({});
   const [workouts, setWorkouts] = useState({});
+  const [messages, setMessages] = useState([]);
+  const [input, setInput] = useState("");
+
+  const bottomRef = useRef(null);
 
   const date = new Date().toISOString().split("T")[0];
 
   useEffect(() => {
     const currentUser = localStorage.getItem("currentUser");
-
-    if (!currentUser) {
-      console.log("No user logged in");
-      return;
-    }
+    if (!currentUser) return;
 
     const storedUser =
       JSON.parse(localStorage.getItem(`userData_${currentUser}`)) || {};
-
     const storedMeals =
       JSON.parse(localStorage.getItem("meals")) || {};
-
     const storedWorkouts =
       JSON.parse(localStorage.getItem("workouts")) || {};
 
@@ -29,8 +27,12 @@ function Coach() {
     setMeals(storedMeals);
     setWorkouts(storedWorkouts);
 
-    console.log("COACH USER DATA:", storedUser);
+    generateInitialMessage(storedUser);
   }, []);
+
+  useEffect(() => {
+    bottomRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [messages]);
 
   const todaysMeals = meals[date] || {
     breakfast: [],
@@ -62,67 +64,117 @@ function Coach() {
       { protein: 0, carbs: 0, fats: 0 }
     );
 
-  const getAdvice = () => {
-    let advice = [];
+  const generateInitialMessage = (user) => {
+    let msg = "Hey! I'm your fitness coach 🤖\n\n";
 
-    if (!userData || !userData.goal) {
-      advice.push("Complete your profile first ⚙️");
-      return advice;
+    if (!user || !user.goal) {
+      msg += "Complete your profile first ⚙️";
+    } else {
+      msg += "Ask me about calories, protein, workouts, or advice!";
     }
 
-    if (totalCalories === 0) {
-      advice.push("Start logging your meals 🍽️");
-    }
-
-    if (macros.protein < 60) {
-      advice.push("Increase protein intake 💪");
-    }
-
-    if (macros.carbs > macros.protein * 3) {
-      advice.push("Reduce excess carbs ⚖️");
-    }
-
-    if (burned < 200) {
-      advice.push("Try to be more active today 🏃");
-    }
-
-    if (userData.goal === "loss" && totalCalories > 2000) {
-      advice.push("You're eating above your goal 📉");
-    }
-
-    if (userData.goal === "gain" && totalCalories < 1800) {
-      advice.push("Increase calorie intake 📈");
-    }
-
-    if (advice.length === 0) {
-      advice.push("You're doing great! Keep going 🔥");
-    }
-
-    return advice;
+    setMessages([{ sender: "coach", text: msg }]);
   };
 
-  const tips = getAdvice();
+  const generateResponse = (query) => {
+    const q = query.toLowerCase();
+
+    if (q.includes("calorie")) {
+      return `You've consumed ${totalCalories} kcal and burned ${burned} kcal today.`;
+    }
+
+    if (q.includes("protein")) {
+      return `Your protein intake is ${macros.protein}g. Try to increase it 💪`;
+    }
+
+    if (q.includes("carb")) {
+      return `Your carbs are ${macros.carbs}g. Balance them ⚖️`;
+    }
+
+    if (q.includes("fat")) {
+      return `Fats: ${macros.fats}g. Keep it moderate 🥑`;
+    }
+
+    if (q.includes("goal")) {
+      return `Your goal is "${userData.goal}". Stay consistent!`;
+    }
+
+    if (q.includes("advice")) {
+      if (macros.protein < 60) return "Increase protein intake 💪";
+      if (burned < 200) return "Be more active today 🏃";
+      return "You're doing great 🔥";
+    }
+
+    return "Ask me about calories, protein, workouts, or advice 💬";
+  };
+
+  const handleSend = () => {
+    if (!input.trim()) return;
+
+    const userMsg = { sender: "user", text: input };
+    const coachReply = {
+      sender: "coach",
+      text: generateResponse(input)
+    };
+
+    setMessages((prev) => [...prev, userMsg, coachReply]);
+    setInput("");
+  };
 
   return (
-    <div>
+    <div className="min-h-screen bg-gradient-to-br from-gray-100 to-gray-200 dark:from-gray-900 dark:to-gray-800">
       <Navbar />
 
-      <div style={{ textAlign: "center", marginTop: "50px" }}>
-        <h1>AI Fitness Coach 🤖</h1>
+      <div className="max-w-3xl mx-auto p-6 flex flex-col h-[85vh]">
 
-        <div
-          style={{
-            maxWidth: "500px",
-            margin: "20px auto",
-            padding: "20px",
-            borderRadius: "10px",
-            border: "1px solid #ccc"
-          }}
-        >
-          {tips.map((tip, index) => (
-            <p key={index}>• {tip}</p>
+        {/* HEADER */}
+        <h1 className="text-3xl font-bold mb-4 text-center text-black dark:text-white">
+          Fitness Coach 🤖
+        </h1>
+
+        {/* CHAT */}
+        <div className="bg-white dark:bg-gray-900 text-black dark:text-white rounded-2xl shadow-md p-4 flex-1 overflow-y-auto flex flex-col gap-3">
+
+          {messages.map((msg, index) => (
+            <div
+              key={index}
+              className={`px-4 py-2 rounded-lg max-w-[70%] ${
+                msg.sender === "user"
+                  ? "bg-black text-white dark:bg-white dark:text-black self-end"
+                  : "bg-gray-100 dark:bg-gray-800 self-start"
+              }`}
+            >
+              {msg.text}
+            </div>
           ))}
+
+          <div ref={bottomRef} />
         </div>
+
+        {/* INPUT */}
+        <div className="mt-4 flex gap-2">
+          <input
+            type="text"
+            placeholder="Ask something..."
+            value={input}
+            onChange={(e) => setInput(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === "Enter") {
+                e.preventDefault();
+                handleSend();
+              }
+            }}
+            className="flex-1 border px-3 py-2 rounded-lg bg-white dark:bg-gray-800 text-black dark:text-white focus:outline-none focus:ring-2 focus:ring-black"
+          />
+
+          <button
+            onClick={handleSend}
+            className="bg-black text-white dark:bg-white dark:text-black px-4 py-2 rounded-lg hover:bg-gray-800 transition"
+          >
+            Send
+          </button>
+        </div>
+
       </div>
     </div>
   );

@@ -38,7 +38,6 @@ function Report() {
 
   const todaysWorkouts = workouts[date] || [];
 
-  // 🔥 TOTAL CALORIES
   const totalCalories = Object.values(todaysMeals)
     .flat()
     .reduce((acc, item) => acc + (item.calories || 0), 0);
@@ -50,7 +49,6 @@ function Report() {
 
   const net = totalCalories - burned;
 
-  // 🔥 MACROS
   const macros = Object.values(todaysMeals)
     .flat()
     .reduce(
@@ -71,7 +69,6 @@ function Report() {
 
   const COLORS = ["#00C49F", "#FFBB28", "#FF8042"];
 
-  // 🔥 WEEKLY DATA (FIXED)
   const getLast7Days = () => {
     const days = [];
 
@@ -112,74 +109,69 @@ function Report() {
 
   const weeklyData = getLast7Days();
 
-  // 🔥 INSIGHT
   const getInsight = () => {
     if (totalCalories === 0) return "Start logging your meals!";
-
-    if (macros.protein < 50)
-      return "Increase protein intake 💪";
-
+    if (macros.protein < 50) return "Increase protein intake 💪";
     if (macros.carbs > macros.protein * 3)
       return "Too many carbs, balance your diet ⚖️";
-
     if (burned > totalCalories)
       return "Great job staying active 🔥";
-
     return "You're doing well, keep it up!";
   };
 
   return (
-    <div>
+    <div className="min-h-screen bg-gradient-to-br from-gray-100 to-gray-200 dark:from-gray-900 dark:to-gray-800">
       <Navbar />
 
-      <div style={{ textAlign: "center", marginTop: "50px" }}>
-        <h1>Report 📊</h1>
+      <div className="max-w-5xl mx-auto p-6">
 
-        {/* DATE */}
-        <input
-          type="date"
-          value={date}
-          onChange={(e) => setDate(e.target.value)}
-        />
+        {/* HEADER */}
+        <div className="mb-6 text-center">
+          <h1 className="text-3xl font-bold text-black dark:text-white">
+            Report 📊
+          </h1>
 
-        <br /><br />
-
-        {/* FOOD */}
-        <div>
-          <h3>Food Summary</h3>
-          <p>Total Calories: {totalCalories} kcal</p>
+          <input
+            type="date"
+            value={date}
+            onChange={(e) => setDate(e.target.value)}
+            className="mt-3 border px-3 py-2 rounded-lg bg-white dark:bg-gray-800 text-black dark:text-white"
+          />
         </div>
 
-        {/* EXERCISE */}
-        <div style={{ marginTop: "20px" }}>
-          <h3>Exercise Summary</h3>
-          <p>Calories Burned: {burned} kcal</p>
+        {/* SUMMARY CARDS */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6 text-center">
+
+          <div className="bg-white dark:bg-gray-900 text-black dark:text-white p-6 rounded-2xl shadow-md transition hover:shadow-lg">
+            <p className="text-gray-500 dark:text-gray-400 text-sm">Total Calories</p>
+            <p className="text-xl font-semibold">{totalCalories} kcal</p>
+          </div>
+
+          <div className="bg-white dark:bg-gray-900 text-black dark:text-white p-6 rounded-2xl shadow-md transition hover:shadow-lg">
+            <p className="text-gray-500 dark:text-gray-400 text-sm">Burned</p>
+            <p className="text-xl font-semibold">{burned} kcal</p>
+          </div>
+
+          <div className="bg-white dark:bg-gray-900 text-black dark:text-white p-6 rounded-2xl shadow-md transition hover:shadow-lg">
+            <p className="text-gray-500 dark:text-gray-400 text-sm">Net</p>
+            <p className="text-xl font-semibold">{net} kcal</p>
+          </div>
+
         </div>
 
-        {/* NET */}
-        <div style={{ marginTop: "20px" }}>
-          <h3>Net Calories</h3>
-          <p>{net} kcal</p>
-        </div>
+        {/* MACRO CHART */}
+        <div className="bg-white dark:bg-gray-900 text-black dark:text-white rounded-2xl shadow-md p-6 mb-6">
+          <h2 className="text-xl font-semibold mb-4 text-center">
+            Macros Breakdown
+          </h2>
 
-        {/* PIE CHART */}
-        <div style={{ marginTop: "40px", textAlign: "center" }}>
-          <h3>Macros Breakdown</h3>
-
-          <div style={{ display: "flex", justifyContent: "center" }}>
+          <div className="flex justify-center">
             <PieChart width={300} height={300}>
-              <Pie
-                data={chartData}
-                cx="50%"
-                cy="50%"
-                outerRadius={100}
-                dataKey="value"
-              >
+              <Pie data={chartData} dataKey="value">
                 {chartData.map((entry, index) => (
                   <Cell key={index} fill={COLORS[index % COLORS.length]} />
                 ))}
               </Pie>
-
               <Tooltip />
               <Legend />
             </PieChart>
@@ -187,24 +179,30 @@ function Report() {
         </div>
 
         {/* INSIGHT */}
-        <div style={{ marginTop: "20px" }}>
-          <h3>Insight 🧠</h3>
-          <p>{getInsight()}</p>
+        <div className="bg-white dark:bg-gray-900 text-black dark:text-white rounded-2xl shadow-md p-6 mb-6 text-center">
+          <h2 className="text-xl font-semibold mb-2">Insight 🧠</h2>
+          <p className="text-gray-700 dark:text-gray-300">
+            {getInsight()}
+          </p>
         </div>
 
-        {/* 🔥 WEEKLY GRAPH */}
-        <div style={{ marginTop: "50px", textAlign: "center" }}>
-          <h3>Weekly Progress 📈</h3>
+        {/* WEEKLY GRAPH */}
+        <div className="bg-white dark:bg-gray-900 text-black dark:text-white rounded-2xl shadow-md p-6 text-center">
+          <h2 className="text-xl font-semibold mb-4">
+            Weekly Progress 📈
+          </h2>
 
-          <div style={{ display: "flex", justifyContent: "center" }}>
+          <div className="flex justify-center">
             <LineChart width={400} height={300} data={weeklyData}>
-              <CartesianGrid strokeDasharray="3 3" />
-              <XAxis dataKey="date" />
-              <YAxis />
-              <Line type="monotone" dataKey="net" stroke="#8884d8" />
+              <CartesianGrid strokeDasharray="3 3" stroke="#555" />
+              <XAxis dataKey="date" stroke="#888" />
+              <YAxis stroke="#888" />
+              <Tooltip />
+              <Line type="monotone" dataKey="net" stroke="#22c55e" />
             </LineChart>
           </div>
         </div>
+
       </div>
     </div>
   );

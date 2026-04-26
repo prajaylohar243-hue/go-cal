@@ -1,65 +1,59 @@
 import { useState, useEffect } from "react";
 import Navbar from "../components/Navbar";
 
-const exerciseData = {
+// 🔥 calorie per minute rates
+const calorieRates = {
   running: 10,
   walking: 4,
   cycling: 8,
-  skipping: 12,
-  pushups: 7
+  gym: 6,
+  skipping: 12
 };
 
 function Exercise() {
-  const [exercise, setExercise] = useState("running");
-  const [duration, setDuration] = useState("");
-
-  // 🔥 DATE
+  const [exercise, setExercise] = useState("");
+  const [time, setTime] = useState("");
   const [date, setDate] = useState(
     new Date().toISOString().split("T")[0]
   );
 
-  // 🔥 LOAD
   const [workouts, setWorkouts] = useState(() => {
-    const stored = localStorage.getItem("workouts");
-    return stored ? JSON.parse(stored) : {};
+    return JSON.parse(localStorage.getItem("workouts")) || {};
   });
 
-  // 🔥 SAVE
   useEffect(() => {
     localStorage.setItem("workouts", JSON.stringify(workouts));
   }, [workouts]);
 
-  const currentWorkouts = workouts[date] || [];
+  const todaysWorkouts = workouts[date] || [];
 
-  // 🔥 ADD
   const handleAdd = () => {
-    if (!duration) return;
+    if (!exercise || !time) return;
 
-    const calories =
-      exerciseData[exercise] * Number(duration);
+    const key = exercise.toLowerCase().trim();
+    const rate = calorieRates[key] || 5;
+    const calories = rate * Number(time);
 
-    const workout = {
-      name: exercise,
-      duration,
+    const newItem = {
+      name: `${exercise} (${time} min)`,
+      time: Number(time),
       calories
     };
 
     setWorkouts((prev) => {
       const updated = { ...prev };
 
-      if (!updated[date]) {
-        updated[date] = [];
-      }
+      if (!updated[date]) updated[date] = [];
 
-      updated[date].push(workout);
+      updated[date] = [...updated[date], newItem];
 
       return updated;
     });
 
-    setDuration("");
+    setExercise("");
+    setTime("");
   };
 
-  // 🔥 DELETE
   const handleDelete = (index) => {
     setWorkouts((prev) => {
       const updated = { ...prev };
@@ -68,95 +62,100 @@ function Exercise() {
     });
   };
 
-  // 🔥 TOTAL
-  const totalBurn = currentWorkouts.reduce(
+  const totalBurned = todaysWorkouts.reduce(
     (acc, item) => acc + item.calories,
     0
   );
 
   return (
-    <div>
+    <div className="min-h-screen bg-gradient-to-br from-gray-100 to-gray-200 dark:from-gray-900 dark:to-gray-800">
       <Navbar />
 
-      <div style={{ textAlign: "center", marginTop: "50px" }}>
-        <h1>Exercise 🔥</h1>
+      <div className="max-w-5xl mx-auto p-6">
 
-        {/* DATE */}
-        <input
-          type="date"
-          value={date}
-          onChange={(e) => setDate(e.target.value)}
-        />
+        {/* HEADER */}
+        <div className="mb-6 text-center">
+          <h1 className="text-3xl font-bold text-black dark:text-white">
+            Exercise Tracker 🏋️
+          </h1>
 
-        <br /><br />
+          <input
+            type="date"
+            value={date}
+            onChange={(e) => setDate(e.target.value)}
+            className="mt-3 border px-3 py-2 rounded-lg bg-white dark:bg-gray-800 text-black dark:text-white"
+          />
+        </div>
 
-        {/* SELECT */}
-        <select
-          value={exercise}
-          onChange={(e) => setExercise(e.target.value)}
-        >
-          {Object.keys(exerciseData).map((ex) => (
-            <option key={ex}>{ex}</option>
-          ))}
-        </select>
+        {/* INPUT CARD */}
+        <div className="bg-white dark:bg-gray-900 text-black dark:text-white rounded-2xl shadow-md p-6 mb-6">
+          <div className="flex flex-col sm:flex-row gap-3 justify-center items-center">
 
-        <br /><br />
+            <input
+              type="text"
+              placeholder="Exercise (running, gym...)"
+              value={exercise}
+              onChange={(e) => setExercise(e.target.value)}
+              className="border px-3 py-2 rounded-lg w-full sm:w-64 bg-white dark:bg-gray-800 text-black dark:text-white focus:outline-none focus:ring-2 focus:ring-black"
+            />
 
-        {/* INPUT */}
-        <input
-          type="number"
-          placeholder="Duration (minutes)"
-          value={duration}
-          onChange={(e) => setDuration(e.target.value)}
-        />
+            <input
+              type="number"
+              placeholder="Time (minutes)"
+              value={time}
+              onChange={(e) => setTime(e.target.value)}
+              className="border px-3 py-2 rounded-lg w-32 bg-white dark:bg-gray-800 text-black dark:text-white focus:outline-none focus:ring-2 focus:ring-black"
+              min="1"
+            />
 
-        <br /><br />
+            <button
+              onClick={handleAdd}
+              className="bg-black text-white dark:bg-white dark:text-black px-4 py-2 rounded-lg hover:bg-gray-800 transition active:scale-95"
+            >
+              Add
+            </button>
 
-        <button onClick={handleAdd}>Add Workout</button>
+          </div>
+        </div>
 
-        {/* LIST */}
-        <div style={{ marginTop: "30px" }}>
-          <h3>Workouts ({date})</h3>
+        {/* SUMMARY */}
+        <div className="bg-white dark:bg-gray-900 text-black dark:text-white rounded-2xl shadow-md p-6 mb-6 text-center">
+          <p className="text-gray-500 dark:text-gray-400 text-sm">Total Burned</p>
+          <p className="text-xl font-semibold">{totalBurned} kcal</p>
+        </div>
 
-          {currentWorkouts.length === 0 ? (
-            <p>No workouts</p>
+        {/* WORKOUT LIST */}
+        <div className="bg-white dark:bg-gray-900 text-black dark:text-white rounded-2xl shadow-md p-6">
+          <h2 className="text-xl font-semibold mb-4">Today's Workouts</h2>
+
+          {todaysWorkouts.length === 0 ? (
+            <p className="text-gray-400 italic text-sm">
+              No workouts logged yet
+            </p>
           ) : (
-            currentWorkouts.map((item, index) => (
+            todaysWorkouts.map((item, index) => (
               <div
                 key={index}
-                style={{
-                  display: "flex",
-                  justifyContent: "center",
-                  gap: "10px",
-                  alignItems: "center"
-                }}
+                className="flex justify-between items-center border-b border-gray-200 dark:border-gray-700 py-2"
               >
-                <p>
-                  {item.name} — {item.duration} min — {item.calories} kcal
-                </p>
+                <span>{item.name}</span>
 
-                <button
-                  onClick={() => handleDelete(index)}
-                  style={{
-                    background: "red",
-                    color: "white",
-                    border: "none",
-                    borderRadius: "5px",
-                    cursor: "pointer"
-                  }}
-                >
-                  Delete
-                </button>
+                <div className="flex items-center gap-3">
+                  <span>{item.calories} kcal</span>
+
+                  <button
+                    onClick={() => handleDelete(index)}
+                    className="text-red-500 hover:text-red-700"
+                  >
+                    ❌
+                  </button>
+                </div>
               </div>
             ))
           )}
+
         </div>
 
-        {/* TOTAL */}
-        <div style={{ marginTop: "30px" }}>
-          <h3>Total Burn 🔥</h3>
-          <p>{totalBurn} kcal</p>
-        </div>
       </div>
     </div>
   );
