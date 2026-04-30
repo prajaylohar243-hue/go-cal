@@ -1,7 +1,6 @@
 import { useNavigate } from "react-router-dom";
 import { useContext } from "react";
 import { UserContext } from "../../context/UserContext";
-
 import {
   calculateBMR,
   getActivityMultiplier,
@@ -29,36 +28,35 @@ function Plan() {
   const macros = calculateMacros(calories);
 
   return (
-    <div style={{ textAlign: "center", marginTop: "100px" }}>
-      <h1>GoCal</h1>
-      <h2>Your Plan</h2>
+    <div className="relative z-10 min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-100 to-gray-200 dark:from-gray-900 dark:to-gray-800">
 
-      <p><strong>The Plan</strong></p>
+      <div className="bg-white dark:bg-gray-900 text-black dark:text-white p-8 rounded-2xl shadow-lg w-full max-w-md text-center">
 
-      <p><strong>Daily Calories:</strong> {Math.round(calories)} kcal</p>
-      <p><strong>Protein:</strong> {macros.protein} g</p>
-      <p><strong>Carbs:</strong> {macros.carbs} g</p>
-      <p><strong>Fats:</strong> {macros.fats} g</p>
+        <h1 className="text-3xl font-bold mb-4">Your Plan</h1>
 
-      <br />
+        <div className="space-y-2">
+          <p><strong>Calories:</strong> {Math.round(calories)} kcal</p>
+          <p><strong>Protein:</strong> {macros.protein} g</p>
+          <p><strong>Carbs:</strong> {macros.carbs} g</p>
+          <p><strong>Fats:</strong> {macros.fats} g</p>
+        </div>
 
-<p>
-  {userData.goal === "loss" && "You are in a calorie deficit for fat loss 🔥"}
-  {userData.goal === "gain" && "You are in a calorie surplus for muscle gain 💪"}
-  {userData.goal === "recomp" && "You are maintaining for body recomposition ⚖️"}
-  {userData.goal === "muscle" && "Focus on building lean muscle 💪"}
-  {userData.goal === "strength" && "Focus on improving strength ⚡"}
-</p>
+        <p className="mt-4 text-gray-500 dark:text-gray-400">
+          {userData.goal === "loss" && "Calorie deficit for fat loss 🔥"}
+          {userData.goal === "gain" && "Calorie surplus for muscle gain 💪"}
+          {userData.goal === "recomp" && "Maintenance for recomposition ⚖️"}
+          {userData.goal === "muscle" && "Focus on lean muscle 💪"}
+          {userData.goal === "strength" && "Strength improvement ⚡"}
+        </p>
 
-      <br /><br />
+        <button
+          onClick={() => navigate("/dashboard")}
+          className="mt-6 bg-black text-white dark:bg-white dark:text-black px-4 py-2 rounded-lg"
+        >
+          Go to Dashboard
+        </button>
 
-      <p><strong>Estimated Time: 8–12 weeks</strong></p>
-
-      <br /><br />
-
-      <button onClick={() => navigate("/dashboard")}>
-        Go to Dashboard
-      </button>
+      </div>
     </div>
   );
 }

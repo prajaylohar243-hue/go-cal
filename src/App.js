@@ -16,9 +16,15 @@ import Report from "./pages/Report";
 import Coach from "./pages/Coach";
 import Settings from "./pages/Settings";
 
+import BackgroundGlow from "./components/BackgroundGlow";
+import BackgroundSVG from "./components/BackgroundSVG";
 function App() {
   return (
     <Router>
+
+      <BackgroundGlow />
+      <BackgroundSVG />
+
       <Routes>
         {/* Public */}
         <Route path="/" element={<Landing />} />
@@ -37,7 +43,7 @@ function App() {
         <Route path="/exercise" element={<Exercise />} />
         <Route path="/report" element={<Report />} />
         <Route path="/coach" element={<Coach />} />
-        <Route path="/Settings" element={<Settings />} />
+        <Route path="/settings" element={<Settings />} />
       </Routes>
     </Router>
   );

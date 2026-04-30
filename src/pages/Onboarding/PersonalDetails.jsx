@@ -9,10 +9,8 @@ function PersonalDetails() {
   const [weight, setWeight] = useState("");
   const [height, setHeight] = useState("");
 
-  // 🔥 Load ONLY current user data
   useEffect(() => {
     const currentUser = localStorage.getItem("currentUser");
-
     if (!currentUser) return;
 
     const stored =
@@ -22,8 +20,6 @@ function PersonalDetails() {
     setGender(stored.gender || "");
     setWeight(stored.weight || "");
     setHeight(stored.height || "");
-
-    console.log("PERSONAL LOAD:", stored);
   }, []);
 
   const handleNext = () => {
@@ -46,48 +42,64 @@ function PersonalDetails() {
       JSON.stringify(updatedData)
     );
 
-    console.log("PERSONAL SAVE:", updatedData);
-
     navigate("/activity");
   };
 
   return (
-    <div style={{ textAlign: "center", marginTop: "100px" }}>
-      <h1>GoCal</h1>
-      <h2>Personal Details</h2>
+    <div className="relative z-10 min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-100 to-gray-200 dark:from-gray-900 dark:to-gray-800">
 
-      <input
-        type="number"
-        placeholder="Age"
-        value={age}
-        onChange={(e) => setAge(e.target.value)}
-      />
-      <br /><br />
+      <div className="bg-white dark:bg-gray-900 text-black dark:text-white p-8 rounded-2xl shadow-lg w-full max-w-md">
 
-      <select value={gender} onChange={(e) => setGender(e.target.value)}>
-        <option value="">Select Gender</option>
-        <option value="male">Male</option>
-        <option value="female">Female</option>
-      </select>
-      <br /><br />
+        <h1 className="text-3xl font-bold text-center mb-6">
+          Personal Details
+        </h1>
 
-      <input
-        type="number"
-        placeholder="Weight (kg)"
-        value={weight}
-        onChange={(e) => setWeight(e.target.value)}
-      />
-      <br /><br />
+        <div className="flex flex-col gap-4">
 
-      <input
-        type="number"
-        placeholder="Height (cm)"
-        value={height}
-        onChange={(e) => setHeight(e.target.value)}
-      />
-      <br /><br />
+          <input
+            type="number"
+            placeholder="Age"
+            value={age}
+            onChange={(e) => setAge(e.target.value)}
+            className="border px-4 py-2 rounded-lg bg-white dark:bg-gray-800"
+          />
 
-      <button onClick={handleNext}>Next</button>
+          <select
+            value={gender}
+            onChange={(e) => setGender(e.target.value)}
+            className="border px-4 py-2 rounded-lg bg-white dark:bg-gray-800"
+          >
+            <option value="">Gender</option>
+            <option value="male">Male</option>
+            <option value="female">Female</option>
+          </select>
+
+          <input
+            type="number"
+            placeholder="Weight (kg)"
+            value={weight}
+            onChange={(e) => setWeight(e.target.value)}
+            className="border px-4 py-2 rounded-lg bg-white dark:bg-gray-800"
+          />
+
+          <input
+            type="number"
+            placeholder="Height (cm)"
+            value={height}
+            onChange={(e) => setHeight(e.target.value)}
+            className="border px-4 py-2 rounded-lg bg-white dark:bg-gray-800"
+          />
+
+          <button
+            onClick={handleNext}
+            className="bg-black text-white dark:bg-white dark:text-black py-2 rounded-lg"
+          >
+            Next
+          </button>
+
+        </div>
+
+      </div>
     </div>
   );
 }

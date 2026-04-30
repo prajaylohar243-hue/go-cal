@@ -12,7 +12,6 @@ function Register() {
   const handleRegister = () => {
     const cleanEmail = email.trim().toLowerCase();
 
-    // 🔥 Validation
     if (!name || !cleanEmail || !password || !confirmPassword) {
       alert("Please fill all fields");
       return;
@@ -28,7 +27,6 @@ function Register() {
       return;
     }
 
-    // 🔥 Check if user already exists
     const existingUser = localStorage.getItem(`user_${cleanEmail}`);
 
     if (existingUser) {
@@ -36,7 +34,6 @@ function Register() {
       return;
     }
 
-    // 🔥 Store user locally
     const user = {
       name,
       email: cleanEmail,
@@ -51,52 +48,68 @@ function Register() {
   };
 
   return (
-    <div style={{ textAlign: "center", marginTop: "100px" }}>
-      <h1>GoCal</h1>
+    <div className="relative z-10 min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-100 to-gray-200 dark:from-gray-900 dark:to-gray-800">
 
-      <input
-        type="text"
-        placeholder="Enter Name"
-        value={name}
-        onChange={(e) => setName(e.target.value)}
-      />
-      <br /><br />
+      <div className="bg-white dark:bg-gray-900 text-black dark:text-white p-8 rounded-2xl shadow-lg w-full max-w-md">
 
-      <input
-        type="email"
-        placeholder="Enter Email"
-        value={email}
-        onChange={(e) => setEmail(e.target.value)}
-      />
-      <br /><br />
+        <h1 className="text-3xl font-bold text-center mb-6">
+          Create Account 🚀
+        </h1>
 
-      <input
-        type="password"
-        placeholder="Enter Password"
-        value={password}
-        onChange={(e) => setPassword(e.target.value)}
-      />
-      <br /><br />
+        <div className="flex flex-col gap-4">
 
-      <input
-        type="password"
-        placeholder="Confirm Password"
-        value={confirmPassword}
-        onChange={(e) => setConfirmPassword(e.target.value)}
-      />
-      <br /><br />
+          <input
+            type="text"
+            placeholder="Enter Name"
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            className="border px-4 py-2 rounded-lg bg-white dark:bg-gray-800 text-black dark:text-white"
+          />
 
-      <button onClick={handleRegister}>Register</button>
+          <input
+            type="email"
+            placeholder="Enter Email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            className="border px-4 py-2 rounded-lg bg-white dark:bg-gray-800 text-black dark:text-white"
+          />
 
-      <p>
-        Already have an account?{" "}
-        <span
-          style={{ color: "blue", cursor: "pointer" }}
-          onClick={() => navigate("/login")}
-        >
-          Login
-        </span>
-      </p>
+          <input
+            type="password"
+            placeholder="Enter Password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            className="border px-4 py-2 rounded-lg bg-white dark:bg-gray-800 text-black dark:text-white"
+          />
+
+          <input
+            type="password"
+            placeholder="Confirm Password"
+            value={confirmPassword}
+            onChange={(e) => setConfirmPassword(e.target.value)}
+            className="border px-4 py-2 rounded-lg bg-white dark:bg-gray-800 text-black dark:text-white"
+          />
+
+          <button
+            onClick={handleRegister}
+            className="bg-black text-white dark:bg-white dark:text-black py-2 rounded-lg hover:bg-gray-800 transition active:scale-95"
+          >
+            Register
+          </button>
+
+        </div>
+
+        <p className="text-sm text-gray-500 dark:text-gray-400 text-center mt-4">
+          Already have an account?{" "}
+          <span
+            onClick={() => navigate("/login")}
+            className="text-blue-500 cursor-pointer hover:underline"
+          >
+            Login
+          </span>
+        </p>
+
+      </div>
     </div>
   );
 }

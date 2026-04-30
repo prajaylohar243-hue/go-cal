@@ -8,7 +8,6 @@ function ActivityLevel() {
 
   const [activity, setActivity] = useState("");
 
-  // 🔥 Prefill if exists
   useEffect(() => {
     if (userData?.activity) {
       setActivity(userData.activity);
@@ -16,50 +15,63 @@ function ActivityLevel() {
   }, [userData]);
 
   const handleNext = () => {
-  if (!activity) {
-    alert("Select activity level");
-    return;
-  }
+    if (!activity) {
+      alert("Select activity level");
+      return;
+    }
 
-  const currentUser = localStorage.getItem("currentUser");
+    const currentUser = localStorage.getItem("currentUser");
 
-  const stored =
-    JSON.parse(localStorage.getItem(`userData_${currentUser}`)) || {};
+    const stored =
+      JSON.parse(localStorage.getItem(`userData_${currentUser}`)) || {};
 
-  const updatedData = {
-    ...stored,
-    activity
+    const updatedData = {
+      ...stored,
+      activity
+    };
+
+    localStorage.setItem(
+      `userData_${currentUser}`,
+      JSON.stringify(updatedData)
+    );
+
+    setUserData(updatedData);
+
+    navigate("/goals");
   };
 
-  localStorage.setItem(
-    `userData_${currentUser}`,
-    JSON.stringify(updatedData)
-  );
-
-  setUserData(updatedData);
-
-  navigate("/goals");
-};
-
   return (
-    <div style={{ textAlign: "center", marginTop: "100px" }}>
-      <h1>GoCal</h1>
-      <h2>Activity Level</h2>
+    <div className="relative z-10 min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-100 to-gray-200 dark:from-gray-900 dark:to-gray-800">
 
-      <p>How active are you?</p>
+      <div className="bg-white dark:bg-gray-900 text-black dark:text-white p-8 rounded-2xl shadow-lg w-full max-w-md text-center">
 
-      <select value={activity} onChange={(e) => setActivity(e.target.value)}>
-        <option value="">Select Activity</option>
-        <option value="sedentary">Sedentary</option>
-        <option value="light">Lightly Active</option>
-        <option value="moderate">Moderately Active</option>
-        <option value="active">Very Active</option>
-        <option value="athlete">Athlete</option>
-      </select>
+        <h1 className="text-3xl font-bold mb-4">Activity Level</h1>
 
-      <br /><br />
+        <p className="text-gray-500 dark:text-gray-400 mb-4">
+          How active are you?
+        </p>
 
-      <button onClick={handleNext}>Next</button>
+        <select
+          value={activity}
+          onChange={(e) => setActivity(e.target.value)}
+          className="border px-4 py-2 rounded-lg w-full bg-white dark:bg-gray-800 mb-4"
+        >
+          <option value="">Select Activity</option>
+          <option value="sedentary">Sedentary</option>
+          <option value="light">Lightly Active</option>
+          <option value="moderate">Moderately Active</option>
+          <option value="active">Very Active</option>
+          <option value="athlete">Athlete</option>
+        </select>
+
+        <button
+          onClick={handleNext}
+          className="bg-black text-white dark:bg-white dark:text-black py-2 w-full rounded-lg"
+        >
+          Next
+        </button>
+
+      </div>
     </div>
   );
 }

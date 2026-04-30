@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 
 function Login() {
   const [email, setEmail] = useState("");
-  const [password, setPassword] = useState(""); // kept for UI consistency
+  const [password, setPassword] = useState("");
   const navigate = useNavigate();
 
   const handleLogin = () => {
@@ -14,15 +14,12 @@ function Login() {
       return;
     }
 
-    // 🔥 store current user
     localStorage.setItem("currentUser", cleanEmail);
 
-    // 🔥 check user-specific data
     const stored = JSON.parse(
       localStorage.getItem(`userData_${cleanEmail}`)
     );
 
-    // 🔥 check if profile is complete
     const isProfileComplete =
       stored &&
       stored.age &&
@@ -40,36 +37,52 @@ function Login() {
   };
 
   return (
-    <div style={{ textAlign: "center", marginTop: "100px" }}>
-      <h1>GoCal</h1>
+    <div className="relative z-10 min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-100 to-gray-200 dark:from-gray-900 dark:to-gray-800">
 
-      <input
-        type="email"
-        placeholder="Enter Email"
-        value={email}
-        onChange={(e) => setEmail(e.target.value)}
-      />
-      <br /><br />
+      <div className="bg-white dark:bg-gray-900 text-black dark:text-white p-8 rounded-2xl shadow-lg w-full max-w-md">
 
-      <input
-        type="password"
-        placeholder="Enter Password"
-        value={password}
-        onChange={(e) => setPassword(e.target.value)}
-      />
-      <br /><br />
+        <h1 className="text-3xl font-bold text-center mb-6">
+          Welcome Back 👋
+        </h1>
 
-      <button onClick={handleLogin}>Login</button>
+        <div className="flex flex-col gap-4">
 
-      <p>
-        New user?{" "}
-        <span
-          style={{ color: "blue", cursor: "pointer" }}
-          onClick={() => navigate("/register")}
-        >
-          Register
-        </span>
-      </p>
+          <input
+            type="email"
+            placeholder="Enter Email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            className="border px-4 py-2 rounded-lg bg-white dark:bg-gray-800 text-black dark:text-white focus:outline-none focus:ring-2 focus:ring-black"
+          />
+
+          <input
+            type="password"
+            placeholder="Enter Password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            className="border px-4 py-2 rounded-lg bg-white dark:bg-gray-800 text-black dark:text-white focus:outline-none focus:ring-2 focus:ring-black"
+          />
+
+          <button
+            onClick={handleLogin}
+            className="bg-black text-white dark:bg-white dark:text-black py-2 rounded-lg hover:bg-gray-800 transition active:scale-95"
+          >
+            Login
+          </button>
+
+        </div>
+
+        <p className="text-sm text-gray-500 dark:text-gray-400 text-center mt-4">
+          New user?{" "}
+          <span
+            onClick={() => navigate("/register")}
+            className="text-blue-500 cursor-pointer hover:underline"
+          >
+            Register
+          </span>
+        </p>
+
+      </div>
     </div>
   );
 }

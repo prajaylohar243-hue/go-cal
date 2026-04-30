@@ -177,7 +177,7 @@ function Track() {
   const COLORS = ["#00C49F", "#FFBB28", "#FF8042"];
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-100 to-gray-200 dark:from-gray-900 dark:to-gray-800">
+    <div className="relative z-10 min-h-screen bg-gradient-to-br from-gray-100 to-gray-200 dark:from-gray-900 dark:to-gray-800">
       <Navbar />
 
       <div className="max-w-5xl mx-auto p-6 text-center">
